@@ -99,34 +99,53 @@ Where:
 ## Program
 
 ```python
+# Initialize value function
+V = np.zeros(n_states)
 
+def policy_evaluation(env, policy, gamma=0.82, theta=1e-8):
+    """
+    Performs iterative policy evaluation using the Bellman expectation equation.
 
-# -------------------------------------------------
-# Policy Evaluation Function
-# -------------------------------------------------
+    Parameters:
+        env    : Gymnasium FrozenLake environment
+        policy : Fixed policy to be evaluated
+        gamma  : Discount factor
+        theta  : Convergence threshold
 
-
-# -------------------------------------------------
-# Display Output
-# -------------------------------------------------
-
-# Change the parameters and observe the results
+    Returns:
+        V         : Estimated state-value function
+        iteration : Number of iterations used for convergence
+    """
+    # Write your code here.
+    V = np.zeros(env.observation_space.n)
+    iteration = 0
+    while True:
+        delta = 0
+        new_V = np.copy(V)
+        for state in range(env.observation_space.n):
+            value = 0
+            for action in range(env.action_space.n):
+                action_prob = policy[state][action]
+                for prob, next_state, reward, terminated in env.P[state][action]:
+                    value += action_prob * prob * (
+                        reward + gamma * V[next_state] * (not terminated)
+                    )
+            new_V[state] = value
+            delta = max(delta, abs(V[state] - new_V[state]))
+        V = new_V
+        iteration += 1
+        if delta < theta:
+            break
+    return V, iteration
 
 ```
 
 ---
 
 ## Output
-
-```text
-
-Number of Iterations: 
-
-State-Value Function as 4x4 Grid:
+<img width="546" height="235" alt="image" src="https://github.com/user-attachments/assets/37d322a1-a351-403e-942b-7534acdf2d0d" />
 
 
-
-```
 ---
 
 ## Result
@@ -138,9 +157,19 @@ Iterative policy evaluation was implemented successfully using the Gymnasium Fro
 ## Inference
 
 ```text
+Inference
 
+--> For γ = 0.82, the value function converged after 37 iterations.
 
+--> The FrozenLake environment is slippery by default, so the agent may not always move in the chosen direction.
 
+--> A random policy was used, where all four actions have an equal chance of being selected.
+
+--> States closer to the goal have higher values because they are more likely to reach the goal and receive a reward.
+
+--> Hole states and terminal states have a value of 0 because the episode ends immediately.
+
+--> The discount factor (γ = 0.82) considers both current and future rewards while giving slightly more importance to immediate rewards.
 ```
 
 
